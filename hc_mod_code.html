@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Driver Safety System</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    max-width: 430px;
+    margin: 30px auto;
+    background: #1d293b;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 5px 25px #0005;
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aab8ca;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.status {
+    padding: 14px;
+    text-align: center;
+    background: #173e32;
+    color: #6ee7b7;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.location {
+    background: #27364b;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+}
+
+.location p {
+    color: #b7c6d9;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.value {
+    font-size: 17px;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.get {
+    background: #3b82f6;
+    color: white;
+}
+
+.share {
+    background: #16a34a;
+    color: white;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#message {
+    text-align: center;
+    color: #fbbf24;
+    font-size: 13px;
+    margin-top: 15px;
+}
+
+.footer {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+    margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>DRIVER SAFETY SYSTEM</h1>
+
+    <div class="subtitle">
+        GPS Location & Emergency Alert Interface
+    </div>
+
+    <div class="status" id="status">
+        SYSTEM READY
+    </div>
+
+    <div class="location">
+
+        <p>LATITUDE</p>
+        <div class="value" id="latitude">Not available</div>
+
+        <br>
+
+        <p>LONGITUDE</p>
+        <div class="value" id="longitude">Not available</div>
+
+        <br>
+
+        <p>LAST LOCATION UPDATE</p>
+        <div class="value" id="time">Not available</div>
+
+    </div>
+
+    <button class="get" onclick="getLocation()">
+        GET MY CURRENT LOCATION
+    </button>
+
+    <button class="share" id="shareButton"
+            onclick="shareLocation()" disabled>
+        SHARE EMERGENCY LOCATION
+    </button>
+
+    <div id="message">
+        Waiting for location permission.
+    </div>
+
+    <div class="footer">
+        Smart Driver Safety Project
+        <br>
+        MPU6050 | Arduino | HC-05
+    </div>
+
+</div>
+
+<script>
+
+let currentLatitude = null;
+let currentLongitude = null;
+
+function getLocation() {
+
+    const status = document.getElementById("status");
+    const message = document.getElementById("message");
+
+    if (!navigator.geolocation) {
+        message.innerText =
+            "Location service is not supported.";
+        return;
+    }
+
+    status.innerText = "FETCHING LOCATION...";
+    message.innerText = "Please wait...";
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+            currentLatitude =
+                position.coords.latitude;
+
+            currentLongitude =
+                position.coords.longitude;
+
+            document.getElementById("latitude")
+                .innerText = currentLatitude.toFixed(6);
+
+            document.getElementById("longitude")
+                .innerText = currentLongitude.toFixed(6);
+
+            document.getElementById("time")
+                .innerText = new Date().toLocaleString();
+
+            status.innerText = "LOCATION ACQUIRED";
+
+            message.innerText =
+                "Your smartphone location is available.";
+
+            document.getElementById("shareButton")
+                .disabled = false;
+
+        },
+
+        function(error) {
+
+            status.innerText = "LOCATION ERROR";
+
+            message.innerText =
+                "Unable to obtain location. Check GPS and permissions.";
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0
+        }
+
+    );
+}
+
+function shareLocation() {
+
+    if (currentLatitude === null) {
+        return;
+    }
+
+    const mapLink =
+        "https://maps.google.com/?q=" +
+        currentLatitude + "," + currentLongitude;
+
+    const alertMessage =
+        "EMERGENCY ALERT!\n" +
+        "A possible driver emergency has been detected.\n" +
+        "Latitude: " + currentLatitude + "\n" +
+        "Longitude: " + currentLongitude + "\n" +
+        "Location: " + mapLink;
+
+    const whatsappLink =
+        "https://wa.me/?text=" +
+        encodeURIComponent(alertMessage);
+
+    window.open(whatsappLink, "_blank");
+
+}
+
+</script>
+
+</body>
+</html>
